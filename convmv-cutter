@@ -515,6 +515,21 @@ sub process_main {
 }
 
 sub char_get_newname {
+	$oldfile=shift;
+	$new = stupid_char_get_newname($oldfile);
+        $filenamelength = length($new);
+        no bytes;
+        while($filenamelength > $maxfilenamelength) {
+            $pos = rindex($new, ".");
+            $new = substr($new, 0, $pos-1) . substr($new, $pos);
+            $newx = encode_utf8($new);
+            $filenamelength=length($newx);
+        }
+        use bytes;
+        return $new;
+}
+
+sub stupid_char_get_newname {
 # returns undef on error and string otherwise.
 	my $oldfile=shift;
 	my $newname;
@@ -676,6 +691,15 @@ sub char_checkenc() {
 		$filenamelength=from_to($new, "utf8", $opt_t, Encode::FB_QUIET);
 	}
 ##	print "$oldfile|$utf8oldfile|$new|$filenamelength\n";
+        no bytes;
+        while($filenamelength > $maxfilenamelength) {
+            $new = decode_utf8($new);
+            $pos = rindex($new, ".");
+            $new = substr($new, 0, $pos-1) . substr($new, $pos);
+            $new = encode_utf8($new);
+            $filenamelength=length($new);
+        }
+        use bytes;
 	if (! $filenamelength) {
 		if ($opt_parsable) {
 			print "errormsg".$del."charsetdoesntcoverneededcharacters".$del.$dir."/".$oldfile.$fin_del;
